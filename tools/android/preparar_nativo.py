@@ -207,6 +207,7 @@ def parches(arbol):
     entorno = dict(os.environ, NFSMW_SDK=str(arbol / "sdk"))
     correr(sys.executable, RAIZ / "tools" / "parche_iso.py", env=entorno, que="parche_iso.py")
     correr(sys.executable, RAIZ / "tools" / "parche_gamertag.py", env=entorno, que="parche_gamertag.py")
+    correr(sys.executable, RAIZ / "tools" / "parche_usuarios.py", env=entorno, que="parche_usuarios.py")
     correr(sys.executable, RAIZ / "tools" / "parche_turnip.py", env=entorno, que="parche_turnip.py")
     correr(sys.executable, RAIZ / "tools" / "parche_pausa.py", env=entorno, que="parche_pausa.py")
     correr(sys.executable, RAIZ / "tools" / "android" / "parche_nativo.py",
