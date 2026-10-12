@@ -13,6 +13,9 @@ Toca ficheros del SDK del motor nativo (via NFSMW_SDK, como parche_iso.py):
     src/input/xinput/xinput_input_driver.cpp
                                         reinterpret_cast al guardar los
                                         punteros de GetProcAddress
+    src/ui/d3d12/d3d12_provider.cpp     IID explicito en vez de _uuidof /
+                                        IID_PPV_ARGS (MSVC)
+    src/core/threading_win.cpp          __try/__except solo en MSVC
 
 No guarda .original: aplica y deshace por sustitucion de texto exacta, bloque a
 bloque, como los demas parches de este proyecto.
@@ -73,6 +76,43 @@ BLOQUES = [
   XInputGetKeystroke_ = reinterpret_cast<void*>(xigk);
   XInputSetState_ = reinterpret_cast<void*>(xiss);
   XInputEnable_ = reinterpret_cast<void*>(xie);"""),
+
+    ("src/ui/d3d12/d3d12_provider.cpp",
+     "IID explicito no lugar de _uuidof",
+     """      if (SUCCEEDED(pfn_d3d12_create_device_(adapter, D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device),""",
+     """      // PARCHE LOCAL - HOST-MINGW: _uuidof es de MSVC; IID_ID3D12Device
+      // (mismo GUID) vale nos dois.
+      if (SUCCEEDED(pfn_d3d12_create_device_(adapter, D3D_FEATURE_LEVEL_11_0, IID_ID3D12Device,"""),
+
+    ("src/ui/d3d12/d3d12_provider.cpp",
+     "IID explicito no lugar de IID_PPV_ARGS",
+     """  pfn_dxgi_get_debug_interface1_(0, IID_PPV_ARGS(&graphics_analysis_));""",
+     """  // PARCHE LOCAL - HOST-MINGW: IID_PPV_ARGS usa __uuidof (MSVC). IID
+  // explicito + cast: falha silenciosa igual sem o PIX anexado.
+  pfn_dxgi_get_debug_interface1_(
+      0, IID_IDXGraphicsAnalysis,
+      reinterpret_cast<void**>(&graphics_analysis_));"""),
+
+    ("src/core/threading_win.cpp",
+     "SEH (__try) so no MSVC",
+     """  __try {
+    RaiseException(0x406D1388, 0, sizeof(info) / sizeof(ULONG_PTR),
+                   reinterpret_cast<ULONG_PTR*>(&info));
+  } __except (EXCEPTION_EXECUTE_HANDLER) {  // NOLINT
+  }""",
+     """  // PARCHE LOCAL - HOST-MINGW: __try/__except es de MSVC. Sem depurador
+  // ja se saiu acima (IsDebuggerPresent); com depurador, ele gestiona
+  // 0x406D1388 igualmente.
+#if defined(_MSC_VER)
+  __try {
+    RaiseException(0x406D1388, 0, sizeof(info) / sizeof(ULONG_PTR),
+                   reinterpret_cast<ULONG_PTR*>(&info));
+  } __except (EXCEPTION_EXECUTE_HANDLER) {  // NOLINT
+  }
+#else
+  RaiseException(0x406D1388, 0, sizeof(info) / sizeof(ULONG_PTR),
+                 reinterpret_cast<ULONG_PTR*>(&info));
+#endif"""),
 ]
 
 
