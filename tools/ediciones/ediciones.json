@@ -8,6 +8,14 @@
       "idioma": 5,
       "pais": 31
     },
+    "pal_ptbr": {
+      "nombre": "PAL Brasil",
+      "pdb": "NfsMWEuropeSpanRelease.pdb",
+      "sha256": ["684ceef963806ae7ba2f6d0936c267f9ff0134d20da1f85a390862dd9c676c28"],
+      "idioma": 5,
+      "pais": 31,
+      "tabla": "pal_es"
+    },
     "usa": {
       "nombre": "USA",
       "pdb": "NfsMWRelease.pdb",
