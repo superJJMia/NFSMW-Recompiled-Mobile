@@ -87,10 +87,12 @@ BLOQUES = [
     ("src/ui/d3d12/d3d12_provider.cpp",
      "IID explicito no lugar de IID_PPV_ARGS",
      """  pfn_dxgi_get_debug_interface1_(0, IID_PPV_ARGS(&graphics_analysis_));""",
-     """  // PARCHE LOCAL - HOST-MINGW: IID_PPV_ARGS usa __uuidof (MSVC). IID
-  // explicito + cast: falha silenciosa igual sem o PIX anexado.
+     """  // PARCHE LOCAL - HOST-MINGW: IID_PPV_ARGS usa __uuidof (MSVC). GUID inline
+  // (PIX, DXProgrammableCapture.h) + cast: falha silenciosa igual sem o PIX.
   pfn_dxgi_get_debug_interface1_(
-      0, IID_IDXGraphicsAnalysis,
+      0,
+      GUID{0x9F251514, 0x9D4D, 0x4902,
+           {0x9D, 0x60, 0x18, 0x98, 0x8A, 0xB7, 0xD4, 0xB5}},
       reinterpret_cast<void**>(&graphics_analysis_));"""),
 
     ("src/core/threading_win.cpp",
