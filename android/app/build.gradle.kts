@@ -180,6 +180,9 @@ android {
     dependencies {
         implementation("androidx.appcompat:appcompat:1.6.1")
         implementation("com.google.android.material:material:1.11.0")
+        // Para importar a pasta extraida do jogo (default.xex + NFS/ + Movies/)
+        // escolhida com o seletor do sistema (ACTION_OPEN_DOCUMENT_TREE).
+        implementation("androidx.documentfile:documentfile:1.0.1")
     }
 }
 

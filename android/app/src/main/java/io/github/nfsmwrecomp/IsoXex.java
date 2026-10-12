@@ -212,4 +212,40 @@ final class IsoXex {
         }
         return s.toString();
     }
+
+    /**
+     * Lo que se puede saber de una carpeta extraida del juego (default.xex +
+     * NFS/ + Movies/): o SHA-256 do default.xex (edicao) e quantos itens
+     * obrigatorios faltam. null se a pasta nao se pode ler.
+     */
+    static Info mirarCarpeta(java.io.File carpeta) {
+        if (carpeta == null || !carpeta.isDirectory()) {
+            return null;
+        }
+        java.io.File xex = new java.io.File(carpeta, "default.xex");
+        String sha = "";
+        try (FileInputStream in = new FileInputStream(xex)) {
+            FileChannel canal = in.getChannel();
+            long tam = canal.size();
+            if (tam > 0 && tam <= MAX_XEX) {
+                ByteBuffer datos = leer(canal, 0, (int) tam);
+                if (datos != null) {
+                    sha = hex(resumen(datos));
+                }
+            }
+        } catch (IOException | RuntimeException e) {
+            return null;
+        }
+        long faltan = 0;
+        if (!xex.isFile()) {
+            faltan++;
+        }
+        if (!new java.io.File(carpeta, "NFS").isDirectory()) {
+            faltan++;
+        }
+        if (!new java.io.File(carpeta, "Movies").isDirectory()) {
+            faltan++;
+        }
+        return new Info(sha, faltan);
+    }
 }

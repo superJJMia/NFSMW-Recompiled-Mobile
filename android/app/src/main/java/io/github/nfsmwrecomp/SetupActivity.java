@@ -1,6 +1,8 @@
 package io.github.nfsmwrecomp;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.documentfile.provider.DocumentFile;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
@@ -44,7 +46,11 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -60,6 +66,7 @@ public class SetupActivity extends AppCompatActivity {
 
     private static final int PEDIR_ISO = 1;
     private static final int PEDIR_DRIVER = 2;
+    private static final int PEDIR_CARPETA = 3;
 
     private static final int ACENTO = 0xFF6F7432;
     private static final int GRIS = 0xFFA0A0A0;
@@ -68,7 +75,13 @@ public class SetupActivity extends AppCompatActivity {
 
     private Ajustes ajustes;
     private TextView textoIso;
+    private TextView textoCarpeta;
+    private TextView textoImportar;
     private TextView textoEdicion;
+    private MaterialButton tabIso;
+    private MaterialButton tabCarpeta;
+    private MaterialButton botonIso;
+    private MaterialButton botonCarpeta;
     private TextView avisoJugar;
     private RadioGroup grupoDrivers;
     private MaterialButton botonJugar;
@@ -91,6 +104,8 @@ public class SetupActivity extends AppCompatActivity {
         setContentView(construir());
         // Una ISO elegida con una version anterior de la app: aun sin mirar.
         mirarIso();
+        // Igual para la carpeta: si quedo a medias, se revalida.
+        mirarCarpeta();
         bancoDePruebas(getIntent());
     }
 
@@ -101,7 +116,8 @@ public class SetupActivity extends AppCompatActivity {
     }
 
     private void bancoDePruebas(Intent in) {
-        if (in == null || !in.getBooleanExtra("nfsmw.banco", false) || ajustes.iso() == null) {
+        if (in == null || !in.getBooleanExtra("nfsmw.banco", false)
+                || (ajustes.iso() == null && ajustes.carpetaJuego() == null)) {
             return;
         }
         String driver = in.getStringExtra("nfsmw.driver");
@@ -121,7 +137,11 @@ public class SetupActivity extends AppCompatActivity {
                 : Ajustes.RES_NATIVA;
         Intent i = new Intent(this, GameActivity.class);
         i.putExtra(GameActivity.EXTRA_ARGUMENTOS, args.toArray(new String[0]));
-        i.putExtra(GameActivity.EXTRA_ISO, ajustes.iso());
+        if ("carpeta".equals(ajustes.fuenteJuego()) && ajustes.carpetaJuego() != null) {
+            i.putExtra(GameActivity.EXTRA_CARPETA, ajustes.carpetaJuego());
+        } else {
+            i.putExtra(GameActivity.EXTRA_ISO, ajustes.iso());
+        }
         i.putExtra(GameActivity.EXTRA_RESOLUCION, resolucion);
         i.putExtra(GameActivity.EXTRA_ESTIRAR, ajustes.estirar());
         i.putExtra(GameActivity.EXTRA_MOSTRAR_FPS, true);
@@ -186,26 +206,57 @@ public class SetupActivity extends AppCompatActivity {
         col.setPadding(m, m, m, m);
         col.setBackgroundColor(0xFF121212);
 
-        TextView titulo = new TextView(this);
-        titulo.setText(R.string.app_name);
-        titulo.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28);
-        titulo.setTypeface(Typeface.DEFAULT_BOLD);
-        titulo.setTextColor(Color.WHITE);
-        titulo.setPadding(dp(8), dp(16), dp(8), dp(4));
-        col.addView(titulo);
-        
-        TextView tResumen = resumen(BuildConfig.CON_JUEGO ? R.string.apk_con_juego : R.string.apk_sonda);
-        tResumen.setPadding(dp(8), 0, dp(8), dp(12));
-        col.addView(tResumen);
+        // --- Marca (cartao de identidade, como no app modificado)
+        TextView marca = new TextView(this);
+        marca.setText("NFSMW");
+        marca.setTextSize(TypedValue.COMPLEX_UNIT_SP, 34);
+        marca.setTypeface(Typeface.DEFAULT_BOLD);
+        marca.setTextColor(Color.WHITE);
+        marca.setPadding(dp(8), dp(16), dp(8), 0);
 
-        // --- Juego
+        TextView marcaSub = resumen(0);
+        marcaSub.setText(getString(R.string.marca_sub, BuildConfig.EDICION));
+
+        TextView tResumen = resumen(BuildConfig.CON_JUEGO ? R.string.apk_con_juego : R.string.apk_sonda);
+        tResumen.setPadding(dp(8), 0, dp(8), dp(4));
+        col.addView(tarjeta(marca, marcaSub, tResumen));
+
+        // --- Juego: ISO o carpeta extraida (abas, como no app modificado)
         textoIso = new TextView(this);
         textoIso.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         textoIso.setTextColor(Color.WHITE);
-        
-        // Para que edicion del juego es el APK y, si la ISO es de otra, el aviso.
+
+        textoCarpeta = new TextView(this);
+        textoCarpeta.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        textoCarpeta.setTextColor(Color.WHITE);
+
+        // Para que edicion del juego es el APK y, si a fonte e de outra, o aviso.
         textoEdicion = resumen(0);
         textoEdicion.setPadding(0, dp(4), 0, 0);
+
+        textoImportar = resumen(0);
+        textoImportar.setPadding(0, dp(4), 0, 0);
+
+        tabIso = new MaterialButton(this);
+        tabIso.setText("ISO");
+        tabIso.setOnClickListener(v -> {
+            ajustes.fuenteJuego("iso");
+            pintarAbas();
+            refrescar();
+        });
+        tabCarpeta = new MaterialButton(this);
+        tabCarpeta.setText(R.string.aba_carpeta);
+        tabCarpeta.setOnClickListener(v -> {
+            ajustes.fuenteJuego("carpeta");
+            pintarAbas();
+            refrescar();
+        });
+        LinearLayout abas = new LinearLayout(this);
+        abas.setOrientation(LinearLayout.HORIZONTAL);
+        abas.addView(tabIso, new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        abas.addView(tabCarpeta, new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
         MaterialButton elegirIso = new MaterialButton(this);
         elegirIso.setText(R.string.elegir_iso);
@@ -215,6 +266,21 @@ public class SetupActivity extends AppCompatActivity {
             i.addCategory(Intent.CATEGORY_OPENABLE);
             i.setType("*/*");
             startActivityForResult(i, PEDIR_ISO);
+        });
+        botonIso = elegirIso;
+
+        botonCarpeta = new MaterialButton(this);
+        botonCarpeta.setText(R.string.elegir_carpeta);
+        estilarBotonSecundario(botonCarpeta);
+        botonCarpeta.setOnClickListener(v -> {
+            Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+            String arbol = ajustes.arbolCarpeta();
+            if (arbol != null && Build.VERSION.SDK_INT >= 26) {
+                i.putExtra("android.provider.extra.INITIAL_URI", Uri.parse(arbol));
+            }
+            startActivityForResult(i, PEDIR_CARPETA);
         });
 
         botonJugar = new MaterialButton(this);
@@ -238,12 +304,17 @@ public class SetupActivity extends AppCompatActivity {
         boxJugar.addView(avisoJugar);
         
         col.addView(tarjeta(
-            seccion(R.string.seccion_juego),
+            seccion(R.string.fonte_jogo),
+            abas,
             textoIso,
+            textoCarpeta,
             textoEdicion,
+            textoImportar,
             espacio(8),
             elegirIso,
-            boxJugar
+            botonCarpeta,
+            boxJugar,
+            botaoSobre()
         ));
 
         // --- Pantalla
@@ -892,22 +963,34 @@ public class SetupActivity extends AppCompatActivity {
     }
 
     private void refrescar() {
+        pintarAbas();
+        boolean carpeta = "carpeta".equals(ajustes.fuenteJuego());
         String nombre = ajustes.nombreIso();
         textoIso.setText(ajustes.iso() == null
                 ? getString(R.string.sin_iso, BuildConfig.EDICION)
                 : getString(R.string.iso_elegida, nombre != null ? nombre : ajustes.iso()));
+        String nombreCarpeta = ajustes.nombreCarpeta();
+        textoCarpeta.setText(ajustes.carpetaJuego() == null
+                ? getString(R.string.sin_carpeta, BuildConfig.EDICION)
+                : getString(R.string.carpeta_elegida,
+                        nombreCarpeta != null ? nombreCarpeta : ajustes.carpetaJuego()));
         // El APK lleva el codigo de una sola edicion del juego: se dice cual y,
-        // si el default.xex de la ISO elegida es otro o a la ISO le falta el
-        // final, se avisa. No se impide jugar: lo que no se ha podido leer no
+        // si el default.xex de la fuente elegida es otro o le faltan archivos,
+        // se avisa. No se impide jugar: lo que no se ha podido leer no
         // demuestra nada.
-        String xex = ajustes.xexIso();
-        boolean mirada = ajustes.iso() != null && xex != null;
-        boolean incompleta = mirada && ajustes.isoFaltan() > 0;
+        String xex = carpeta ? ajustes.xexCarpeta() : ajustes.xexIso();
+        boolean hayFuente = carpeta ? ajustes.carpetaJuego() != null : ajustes.iso() != null;
+        boolean mirada = hayFuente && xex != null;
+        boolean incompleta = mirada && (carpeta ? ajustes.carpetaFaltan() > 0 : ajustes.isoFaltan() > 0);
         boolean otraEdicion = mirada && !xex.isEmpty()
                 && !BuildConfig.EDICION_XEX.isEmpty() && !xex.equals(BuildConfig.EDICION_XEX);
         if (incompleta) {
-            textoEdicion.setText(getString(R.string.iso_incompleta,
-                    Formatter.formatShortFileSize(this, ajustes.isoFaltan())));
+            if (carpeta) {
+                textoEdicion.setText(getString(R.string.carpeta_incompleta));
+            } else {
+                textoEdicion.setText(getString(R.string.iso_incompleta,
+                        Formatter.formatShortFileSize(this, ajustes.isoFaltan())));
+            }
         } else {
             String texto = getString(
                     otraEdicion ? R.string.iso_otra_edicion : R.string.edicion_apk,
@@ -919,9 +1002,10 @@ public class SetupActivity extends AppCompatActivity {
         }
         textoEdicion.setTextColor(incompleta || otraEdicion ? AVISO : GRIS);
         textoEdicion.setVisibility(BuildConfig.CON_JUEGO ? View.VISIBLE : View.GONE);
-        boolean puedeJugar = BuildConfig.CON_JUEGO && ajustes.iso() != null;
+        boolean puedeJugar = BuildConfig.CON_JUEGO && hayFuente;
         botonJugar.setEnabled(puedeJugar);
-        avisoJugar.setText(BuildConfig.CON_JUEGO ? R.string.jugar_sin_iso : R.string.jugar_sin_juego);
+        avisoJugar.setText(!BuildConfig.CON_JUEGO ? R.string.jugar_sin_juego
+                : carpeta ? R.string.jugar_sin_carpeta : R.string.jugar_sin_iso);
         avisoJugar.setVisibility(puedeJugar ? View.GONE : View.VISIBLE);
 
         grupoDrivers.setOnCheckedChangeListener(null);
@@ -978,6 +1062,36 @@ public class SetupActivity extends AppCompatActivity {
         }
     }
 
+    /** Botao Sobre: versao e creditos (a tela Sobre do app modificado). */
+    private View botaoSobre() {
+        MaterialButton sobre = new MaterialButton(this);
+        sobre.setText(R.string.sobre);
+        estilarBotonSecundario(sobre);
+        sobre.setOnClickListener(v -> new AlertDialog.Builder(this)
+                .setTitle(R.string.sobre_titulo)
+                .setMessage(getString(R.string.sobre_texto,
+                        BuildConfig.VERSION_NAME, BuildConfig.EDICION))
+                .setPositiveButton(android.R.string.ok, null)
+                .show());
+        return sobre;
+    }
+
+    /** Abas ISO | XEX/PASTA: pinta a ativa e mostra/esconde os controles de cada fonte. */
+    private void pintarAbas() {
+        boolean carpeta = "carpeta".equals(ajustes.fuenteJuego());
+        estilarBotonPrimario(tabIso);
+        estilarBotonSecundario(tabCarpeta);
+        if (carpeta) {
+            estilarBotonSecundario(tabIso);
+            estilarBotonPrimario(tabCarpeta);
+        }
+        textoIso.setVisibility(carpeta ? View.GONE : View.VISIBLE);
+        botonIso.setVisibility(carpeta ? View.GONE : View.VISIBLE);
+        textoCarpeta.setVisibility(carpeta ? View.VISIBLE : View.GONE);
+        botonCarpeta.setVisibility(carpeta ? View.VISIBLE : View.GONE);
+        textoImportar.setVisibility(carpeta ? View.VISIBLE : View.GONE);
+    }
+
     private void actualizarTurbo() {
         // Solo con Turnip: es un ajuste de KGSL, la GPU de Adreno.
         Drivers.Driver d = Drivers.buscar(this, ajustes.driver());
@@ -998,7 +1112,11 @@ public class SetupActivity extends AppCompatActivity {
         i.putExtra(GameActivity.EXTRA_ARGUMENTOS,
                 ajustes.argumentos(this, sonda).toArray(new String[0]));
         if (!sonda) {
-            i.putExtra(GameActivity.EXTRA_ISO, ajustes.iso());
+            if ("carpeta".equals(ajustes.fuenteJuego()) && ajustes.carpetaJuego() != null) {
+                i.putExtra(GameActivity.EXTRA_CARPETA, ajustes.carpetaJuego());
+            } else {
+                i.putExtra(GameActivity.EXTRA_ISO, ajustes.iso());
+            }
             i.putExtra(GameActivity.EXTRA_RESOLUCION, ajustes.resolucion());
             i.putExtra(GameActivity.EXTRA_ESTIRAR, ajustes.estirar());
             i.putExtra(GameActivity.EXTRA_MOSTRAR_FPS, ajustes.mostrarFps());
@@ -1024,7 +1142,19 @@ public class SetupActivity extends AppCompatActivity {
             ajustes.iso(uri.toString());
             ajustes.nombreIso(nombreDe(uri));
             ajustes.isoSinMirar();
+            ajustes.fuenteJuego("iso");
             mirarIso();
+        } else if (peticion == PEDIR_CARPETA) {
+            try {
+                getContentResolver().takePersistableUriPermission(uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            } catch (SecurityException e) {
+                Toast.makeText(this, R.string.carpeta_sin_permiso, Toast.LENGTH_LONG).show();
+                return;
+            }
+            ajustes.arbolCarpeta(uri.toString());
+            ajustes.fuenteJuego("carpeta");
+            importarCarpeta(uri);
         } else if (peticion == PEDIR_DRIVER) {
             try {
                 Drivers.Driver d = Drivers.importar(this, uri);
@@ -1061,6 +1191,170 @@ public class SetupActivity extends AppCompatActivity {
                 }
             });
         }, "mirar-iso").start();
+    }
+
+    /**
+     * Lee de la carpeta elegida de que edicion es y si esta entera (IsoXex),
+     * si aun no se sabe. En otro hilo, como mirarIso.
+     */
+    private void mirarCarpeta() {
+        final String ruta = ajustes.carpetaJuego();
+        if (ruta == null || ajustes.xexCarpeta() != null) {
+            return;
+        }
+        new Thread(() -> {
+            IsoXex.Info info = IsoXex.mirarCarpeta(new File(ruta));
+            runOnUiThread(() -> {
+                if (ruta.equals(ajustes.carpetaJuego())) {
+                    // Vacio = no se pudo leer; asi no se reintenta en cada arranque.
+                    ajustes.carpetaMirada(info != null ? info.xex : "", info != null ? info.faltan : 0);
+                    if (!isFinishing() && !isDestroyed()) {
+                        refrescar();
+                    }
+                }
+            });
+        }, "mirar-carpeta").start();
+    }
+
+    /** La carpeta final do jogo importado (default.xex + NFS/ + Movies/). */
+    private File carpetaJuegoFinal() {
+        File externo = getExternalFilesDir(null);
+        return new File(externo != null ? externo : getFilesDir(), "juego");
+    }
+
+    private static boolean carpetaValida(File carpeta) {
+        return new File(carpeta, "default.xex").isFile()
+                && new File(carpeta, "NFS").isDirectory()
+                && new File(carpeta, "Movies").isDirectory();
+    }
+
+    /**
+     * Copia a arvore SAF escolhida para o armazenamento do app, com staging
+     * atomico: so troca se a copia passar na validacao. Em outro hilo, com
+     * progresso no textoImportar. Igual ao importGameFolder do nfsmw-android.
+     */
+    private void importarCarpeta(Uri arbol) {
+        botonCarpeta.setEnabled(false);
+        textoImportar.setText(R.string.carpeta_copiando);
+        new Thread(() -> {
+            File destino = carpetaJuegoFinal();
+            File pai = destino.getParentFile();
+            File staging = new File(pai, ".juego.importing");
+            File anterior = new File(pai, ".juego.previous");
+            String erro = null;
+            long copiados = 0;
+            try {
+                borrarArbol(staging);
+                borrarArbol(anterior);
+                DocumentFile fuente = DocumentFile.fromTreeUri(this, arbol);
+                if (fuente == null || !fuente.isDirectory()) {
+                    throw new IOException(getString(R.string.carpeta_no_abre));
+                }
+                copiados = copiarArbol(fuente, staging, staging.getCanonicalFile(), copiados);
+                if (!carpetaValida(staging)) {
+                    throw new IOException(getString(R.string.carpeta_invalida));
+                }
+                if (destino.exists()) {
+                    if (!destino.renameTo(anterior)) {
+                        throw new IOException(getString(R.string.carpeta_no_mueve));
+                    }
+                }
+                if (!staging.renameTo(destino)) {
+                    if (anterior.exists()) {
+                        anterior.renameTo(destino);
+                    }
+                    throw new IOException(getString(R.string.carpeta_no_mueve));
+                }
+                borrarArbol(anterior);
+            } catch (Exception e) {
+                erro = e.getMessage();
+                try {
+                    borrarArbol(staging);
+                } catch (IOException ignored) {
+                }
+            }
+            final String msgErro = erro;
+            final long total = copiados;
+            runOnUiThread(() -> {
+                botonCarpeta.setEnabled(true);
+                if (msgErro != null) {
+                    textoImportar.setText(getString(R.string.carpeta_error, msgErro));
+                } else {
+                    textoImportar.setText(getString(R.string.carpeta_copiada, total / (1024 * 1024)));
+                    ajustes.carpetaJuego(destino.getAbsolutePath());
+                    DocumentFile fuente = DocumentFile.fromTreeUri(this, arbol);
+                    ajustes.nombreCarpeta(fuente != null && fuente.getName() != null
+                            ? fuente.getName() : destino.getName());
+                    ajustes.carpetaSinMirar();
+                    mirarCarpeta();
+                }
+                if (!isFinishing() && !isDestroyed()) {
+                    refrescar();
+                }
+            });
+        }, "importar-carpeta").start();
+    }
+
+    private long copiarArbol(DocumentFile fuente, File destino, File raizSegura, long copiados)
+            throws IOException {
+        if (!destino.getCanonicalFile().toPath().startsWith(raizSegura.toPath())) {
+            throw new IOException(getString(R.string.carpeta_ruta_mala));
+        }
+        if (!destino.mkdirs() && !destino.isDirectory()) {
+            throw new IOException(getString(R.string.carpeta_no_crea, destino));
+        }
+        for (DocumentFile hijo : fuente.listFiles()) {
+            String nombre = hijo.getName();
+            if (nombre == null || nombre.isEmpty() || nombre.equals(".") || nombre.equals("..")
+                    || nombre.contains("/") || nombre.contains("\\")) {
+                throw new IOException(getString(R.string.carpeta_nombre_malo));
+            }
+            File meta = new File(destino, nombre);
+            if (hijo.isDirectory()) {
+                copiados = copiarArbol(hijo, meta, raizSegura, copiados);
+            } else if (hijo.isFile()) {
+                File padre = meta.getParentFile();
+                if (padre == null || !padre.getCanonicalFile().toPath().startsWith(raizSegura.toPath())) {
+                    throw new IOException(getString(R.string.carpeta_ruta_mala));
+                }
+                if (!padre.mkdirs() && !padre.isDirectory()) {
+                    throw new IOException(getString(R.string.carpeta_no_crea, padre));
+                }
+                try (InputStream in = getContentResolver().openInputStream(hijo.getUri());
+                     OutputStream out = new FileOutputStream(meta)) {
+                    if (in == null) {
+                        throw new IOException(getString(R.string.carpeta_no_lee, nombre));
+                    }
+                    byte[] bufer = new byte[1024 * 1024];
+                    int n;
+                    while ((n = in.read(bufer)) != -1) {
+                        out.write(bufer, 0, n);
+                        copiados += n;
+                        if ((copiados & ((32L * 1024 * 1024) - 1)) < n) {
+                            final long total = copiados;
+                            runOnUiThread(() -> textoImportar.setText(
+                                    getString(R.string.carpeta_copiando_mb, total / (1024 * 1024))));
+                        }
+                    }
+                }
+            }
+        }
+        return copiados;
+    }
+
+    private static void borrarArbol(File f) throws IOException {
+        if (!f.exists()) {
+            return;
+        }
+        File[] hijos = f.listFiles();
+        if (hijos != null) {
+            for (File h : hijos) {
+                borrarArbol(h);
+            }
+        }
+        if (!f.delete()) {
+            throw new IOException("No se pudo borrar " + f.getName());
+        }
     }
 
     private String nombreDe(Uri uri) {

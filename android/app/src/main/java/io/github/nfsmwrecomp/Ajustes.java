@@ -72,6 +72,39 @@ final class Ajustes {
     }
     void isoSinMirar() { p.edit().remove("iso_xex").remove("iso_faltan").apply(); }
 
+    /**
+     * De onde vem o jogo: "iso" (URI content:// da ISO, modo do victor) ou
+     * "carpeta" (pasta extraida com default.xex + NFS/ + Movies/, ja importada
+     * para o armazenamento do app). null = ainda nao se escolheu. Vale a
+     * ultima fonte escolhida.
+     */
+    String fuenteJuego() { return p.getString("fuente_juego", null); }
+    void fuenteJuego(String f) { p.edit().putString("fuente_juego", f).apply(); }
+
+    /** Pasta do jogo ja importada, ou null. */
+    String carpetaJuego() { return p.getString("carpeta_juego", null); }
+    void carpetaJuego(String ruta) { p.edit().putString("carpeta_juego", ruta).apply(); }
+
+    String nombreCarpeta() { return p.getString("carpeta_nombre", null); }
+    void nombreCarpeta(String n) { p.edit().putString("carpeta_nombre", n).apply(); }
+
+    /** Arvore SAF de onde se importou (para reabrir o seletor no mesmo sitio). */
+    String arbolCarpeta() { return p.getString("carpeta_arbol", null); }
+    void arbolCarpeta(String uri) { p.edit().putString("carpeta_arbol", uri).apply(); }
+
+    /**
+     * Lo que se ha leido de la carpeta elegida. xexCarpeta: SHA-256 de su
+     * default.xex; null si aun no se ha mirado y "" si no se pudo leer.
+     * carpetaFaltan: cuantos itens obrigatorios faltam (default.xex, NFS,
+     * Movies); 0 si esta completa.
+     */
+    String xexCarpeta() { return p.getString("carpeta_xex", null); }
+    long carpetaFaltan() { return p.getLong("carpeta_faltan", 0); }
+    void carpetaMirada(String sha, long faltan) {
+        p.edit().putString("carpeta_xex", sha).putLong("carpeta_faltan", faltan).apply();
+    }
+    void carpetaSinMirar() { p.edit().remove("carpeta_xex").remove("carpeta_faltan").apply(); }
+
     /** Nombre del driver importado, o null para el del sistema. */
     String driver() { return p.getString("driver", null); }
     void driver(String nombre) { p.edit().putString("driver", nombre).apply(); }

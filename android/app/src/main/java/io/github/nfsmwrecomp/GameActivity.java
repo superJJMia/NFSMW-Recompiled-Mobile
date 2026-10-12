@@ -43,6 +43,8 @@ public class GameActivity extends SDLActivity {
 
     static final String EXTRA_ARGUMENTOS = "io.github.nfsmwrecomp.ARGUMENTOS";
     static final String EXTRA_ISO = "io.github.nfsmwrecomp.ISO";
+    /** Pasta extraida do jogo (default.xex + NFS/ + Movies/), ja no armazenamento do app. */
+    static final String EXTRA_CARPETA = "io.github.nfsmwrecomp.CARPETA";
     /** Ajustes.RES_480P, RES_720P o RES_NATIVA. */
     static final String EXTRA_RESOLUCION = "io.github.nfsmwrecomp.RESOLUCION";
     /** Llenar la pantalla entera en vez de 16:9 con barras. */
@@ -78,17 +80,24 @@ public class GameActivity extends SDLActivity {
             lista.addAll(Arrays.asList(recibidos));
         }
 
-        // LA ISO NO SE COPIA: se le pasa al juego su URI content:// tal cual.
-        // El SDK la monta con DiscImageDevice y, cuando toca mapearla, pide el
-        // descriptor de vuelta por JNI a openContentFd (mas abajo). Ver
-        // tools/parche_iso.py.
-        //
-        // Pasar /proc/self/fd/N con el descriptor ya abierto NO funciona: open()
-        // sobre esa ruta reabre el fichero de verdad, y la app no tiene permiso
-        // sobre el almacenamiento compartido.
-        String iso = intent.getStringExtra(EXTRA_ISO);
-        if (iso != null) {
-            lista.add("--game_data_root=" + iso);
+        String carpeta = intent.getStringExtra(EXTRA_CARPETA);
+        if (carpeta != null) {
+            // Carpeta extraida (default.xex + NFS/ + Movies/): el SDK la monta
+            // con HostPathDevice, sin copiar nada (ver tools/parche_iso.py).
+            lista.add("--game_data_root=" + carpeta);
+        } else {
+            // LA ISO NO SE COPIA: se le pasa al juego su URI content:// tal cual.
+            // El SDK la monta con DiscImageDevice y, cuando toca mapearla, pide el
+            // descriptor de vuelta por JNI a openContentFd (mas abajo). Ver
+            // tools/parche_iso.py.
+            //
+            // Pasar /proc/self/fd/N con el descriptor ya abierto NO funciona: open()
+            // sobre esa ruta reabre el fichero de verdad, y la app no tiene permiso
+            // sobre el almacenamiento compartido.
+            String iso = intent.getStringExtra(EXTRA_ISO);
+            if (iso != null) {
+                lista.add("--game_data_root=" + iso);
+            }
         }
 
         // Apaisado y bloqueado. El manifiesto ya lo pide, pero algunas ROMs y

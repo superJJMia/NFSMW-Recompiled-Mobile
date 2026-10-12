@@ -10,6 +10,11 @@ proyecto vibe-codeado: ver la sección "This fork" del [README](README.md).
 
 ### Añadido
 
+- Edición PAL Brasil (PT-BR): el XEX 684ceef9… se reconoce como compilación pal_es (mismo PDB, mismas direcciones) vía tabla: pal_es en ediciones.json; el APK acepta ISO/pasta PT-BR sin aviso, idioma 5 / país 31.
+- Fonte do jogo em dois formatos: além da ISO (URI SAF, sem cópia), a pasta extraída (default.xex + NFS/ + Movies/) pode ser importada para o armazenamento do app e jogada direto (--game_data_root em pasta, que o parche_iso.py já monta). Abas ISO | XEX/PASTA na tela inicial.
+- Perfil único logado para os usuários 0-3 (tools/parche_usuarios.py, aplicado ao SDK do motor nativo): qualquer controle que o jogo escutar vê sessão iniciada e as mesmas partidas; corrige o save travado quando o gamepad cai nos usuários 1-3 (ex. Quest + controle Bluetooth).
+- Tela inicial em dois blocos (marca + fonte do jogo com abas) e diálogo Sobre com versão e créditos.
+
 - Ajustes de partida para GPU debiles (Adreno 5xx y hasta la 620, Mali hasta la G68, PowerVR; p. ej.
   Snapdragon 650, 660, 695): la primera vez que se abre la app, y solo en lo que el usuario no haya
   elegido nunca, se ponen 1024x576, 30 fps, sin suavizado, bufer de pantalla a 720p, anisotropico 2x,
