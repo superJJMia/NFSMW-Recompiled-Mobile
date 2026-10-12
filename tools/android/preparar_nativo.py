@@ -206,6 +206,7 @@ def parches(arbol):
     print("== Parches al SDK del motor nativo")
     entorno = dict(os.environ, NFSMW_SDK=str(arbol / "sdk"))
     correr(sys.executable, RAIZ / "tools" / "parche_iso.py", env=entorno, que="parche_iso.py")
+    correr(sys.executable, RAIZ / "tools" / "parche_host_mingw.py", env=entorno, que="parche_host_mingw.py")
     correr(sys.executable, RAIZ / "tools" / "parche_gamertag.py", env=entorno, que="parche_gamertag.py")
     correr(sys.executable, RAIZ / "tools" / "parche_usuarios.py", env=entorno, que="parche_usuarios.py")
     correr(sys.executable, RAIZ / "tools" / "parche_turnip.py", env=entorno, que="parche_turnip.py")
