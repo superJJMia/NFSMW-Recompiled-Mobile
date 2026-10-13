@@ -68,7 +68,9 @@ public class SetupActivity extends AppCompatActivity {
     private static final int PEDIR_DRIVER = 2;
     private static final int PEDIR_CARPETA = 3;
 
-    private static final int ACENTO = 0xFF6F7432;
+    // Fase 2 (identidade Evolved): lima neon sobre preto. O texto sobre o lima
+    // continua escuro (ver estilarBotonPrimario).
+    private static final int ACENTO = 0xFFBFFF00;
     private static final int GRIS = 0xFFA0A0A0;
     private static final int AVISO = 0xFFFFB74D;
     private static final String ESTADO_AVANZADO = "avanzado_abierto";
@@ -209,13 +211,15 @@ public class SetupActivity extends AppCompatActivity {
         // --- Marca (cartao de identidade, como no app modificado)
         TextView marca = new TextView(this);
         marca.setText("NFSMW");
-        marca.setTextSize(TypedValue.COMPLEX_UNIT_SP, 34);
+        marca.setTextSize(TypedValue.COMPLEX_UNIT_SP, 40);
         marca.setTypeface(Typeface.DEFAULT_BOLD);
         marca.setTextColor(Color.WHITE);
+        marca.setLetterSpacing(0.06f);
         marca.setPadding(dp(8), dp(16), dp(8), 0);
 
         TextView marcaSub = resumen(0);
         marcaSub.setText(getString(R.string.marca_sub, BuildConfig.EDICION));
+        marcaSub.setLetterSpacing(0.18f);
 
         TextView tResumen = resumen(BuildConfig.CON_JUEGO ? R.string.apk_con_juego : R.string.apk_sonda);
         tResumen.setPadding(dp(8), 0, dp(8), dp(4));
@@ -239,6 +243,7 @@ public class SetupActivity extends AppCompatActivity {
 
         tabIso = new MaterialButton(this);
         tabIso.setText("ISO");
+        tabIso.setLetterSpacing(0.1f);
         tabIso.setOnClickListener(v -> {
             ajustes.fuenteJuego("iso");
             pintarAbas();
@@ -246,6 +251,7 @@ public class SetupActivity extends AppCompatActivity {
         });
         tabCarpeta = new MaterialButton(this);
         tabCarpeta.setText(R.string.aba_carpeta);
+        tabCarpeta.setLetterSpacing(0.1f);
         tabCarpeta.setOnClickListener(v -> {
             ajustes.fuenteJuego("carpeta");
             pintarAbas();
@@ -683,9 +689,10 @@ public class SetupActivity extends AppCompatActivity {
         caja.setPadding(0, dp(8), 0, dp(16));
         TextView t = new TextView(this);
         t.setText(texto);
-        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
+        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         t.setTypeface(Typeface.DEFAULT_BOLD);
-        t.setTextColor(Color.WHITE);
+        t.setTextColor(ACENTO);
+        t.setLetterSpacing(0.12f);
         caja.addView(t);
         View raya = new View(this);
         raya.setBackgroundColor(ACENTO);
