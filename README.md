@@ -172,9 +172,11 @@ Things worth knowing:
   **Import driver (.zip)** with an adrenotools package.
 - **If it does not start**, open **Advanced** and tap **Test Vulkan**: it reports which
   driver loaded and whether the GPU is accepted, without needing the game.
-- **The APK contains the game's code**, translated. It is for your own devices: never
-  share or publish it (see [Legal](#legal)). Skip the first and third commands and you
-  get an APK with only the Vulkan test, which contains nothing from the game.
+- **The APK contains the game's code**, translated, and only runs with your own disc.
+  Prebuilt binaries are published in the [Releases](releases) page, as a convenience for
+  sideloading on devices you own — see [Releases](#releases) and [Legal](#legal). Skip
+  the first and third commands and you get an APK with only the Vulkan test, which
+  contains nothing from the game.
 
 Everything else, including the settings and what was measured:
 [docs/android.md](docs/android.md) (Spanish).
@@ -262,6 +264,14 @@ need the Spanish disc: see [docs/ediciones.md](docs/ediciones.md).
 - **Like any APK here, they contain the game's code**: never share them (see
   [Legal](#legal)).
 
+## Releases
+
+Prebuilt launcher APKs for Android / Meta Quest are published in the
+[Releases](https://github.com/superJJMia/NFSMW-Recompiled-Mobile/releases) page.
+Each APK is built from the PAL Spain disc (the PT-BR disc shares its table) and only runs
+with a copy of that game. Install with `adb install -r`. See
+[Game editions](#game-editions-one-apk-per-disc) and [Legal](#legal) before using them.
+
 ## Documentation
 
 The README is in English; the technical documentation is in Spanish, matching the
@@ -330,7 +340,10 @@ What must **never** be distributed:
 
 - `default.xex` or any other game file
 - the C++ the code generator produces from it
-- **the compiled game executable** — it contains the game's own code, translated
+- **published game builds, as a full game download** — the Android APK in
+  [Releases](releases) is distributed as a convenience for sideloading on your own
+  devices, from a disc you own. It does not turn the repository into a way to get the game
+  for free: without your own PAL Spain/PT-BR disc it does nothing.
 
 What is shared here is the *patch*: configuration, hooks, stubs, scripts and
 documentation. Never the game.
