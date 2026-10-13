@@ -17,16 +17,47 @@ calls, the filesystem, audio, input, and a translation of the Xenos GPU to Direc
 
 ## This fork
 
-This is a fork of [madelrandel-blip/NFSMW-Recompiled](https://github.com/madelrandel-blip/NFSMW-Recompiled)
-that adds an **Android port** (arm64, Snapdragon, Vulkan) and performance work on the Xenos
-GPU path. See [docs/android.md](docs/android.md), [docs/pipeline-nativo.md](docs/pipeline-nativo.md)
-and the [CHANGELOG](CHANGELOG.md). Everything it changes in the ReXGlue SDK is in
-[sdk/](sdk/): one diff to read, generated from the patch scripts in `tools/`.
+This repository is a fork of
+[victorgbd/NFSMW-Recompiled-Mobile](https://github.com/victorgbd/NFSMW-Recompiled-Mobile),
+which is itself a fork of
+[madelrandel-blip/NFSMW-Recompiled](https://github.com/madelrandel-blip/NFSMW-Recompiled).
+It carries all of that work: the **Android port** (arm64, Snapdragon, Vulkan), the optional
+**native engine** (builds the game in C++, no Xenos GPU emulation), edition detection and
+one-APK-per-disc builds, the launcher, and the SDK patches.
+
+On top of it, this fork is tuned to keep playing NFS: Most Wanted on a **Meta Quest 3S**
+(headset / Android tablet), and fills the gaps it had:
+
+- **Always-landscape launcher.** The app opens in `sensorLandscape`. The home screen only
+  asks for the game — ISO or extracted XEX/folder — plus the **Play** button. Every other
+  setting moved to a separate **Settings** screen, so the action buttons always stay on
+  screen without scrolling.
+- **New visual identity.** The launcher was redesigned to speak the visual language of the
+  project's reference site: near-black background with a neon-red accent, cards with thin
+  red filets, tick-marked section headers, monospace labels, re-styled Material buttons.
+  Two crash bugs found on the first round of that skin are fixed (card stroke color as a
+  `ColorStateList`, and the "Advanced" header no longer casting its first child to
+  `TextView`).
+- **Português do Brasil.** The launcher is fully translated to pt-BR, and the **PT-BR
+  (PAL Brasil)** disc edition is recognized over the `pal_es` table
+  (`0ec80fd`).
+- **Save-slot fix for PlayStation controllers.** Gamepads that enumerate as several users
+  (PS4/PS5 family) used to scatter the saves across slots 0–3. A single logged-in profile
+  is now shared (`tools/parche_usuarios.py`), so saves always land in the same folder
+  (`725f43d`).
+- **Dual game source.** Pick your ISO in place, or a folder with the extracted XEX. Both
+  paths run the same edition check before launching (`698519a`).
+- **Lighter build host.** The native engine's host tool compiles with MinGW — no Visual
+  Studio needed on the build machine (`tools/parche_host_mingw.py`).
+
+See the [CHANGELOG](CHANGELOG.md) and the commit list for the small incremental work.
+Everything this fork changes in the ReXGlue SDK is in [sdk/](sdk/): one diff to read,
+generated from the patch scripts in `tools/`.
 
 > **This is a vibe-coded project.** The Android port and the changes in this fork were
-> written with an AI coding assistant (Claude Code), directed, tested on real hardware and
-> accepted by a human. The documentation records what was measured and what was not; trust
-> the numbers in it, not the confidence of any comment. Review the code before reusing it.
+> written with an AI coding assistant, directed, tested on real hardware and accepted by a
+> human. The documentation records what was measured and what was not; trust the numbers in
+> it, not the confidence of any comment. Review the code before reusing it.
 
 ---
 
@@ -326,8 +357,11 @@ Thanks to everyone whose work this stands on.
 
 **The original project**
 
+- [victorgbd/NFSMW-Recompiled-Mobile](https://github.com/victorgbd/NFSMW-Recompiled-Mobile) —
+  the upstream fork this repository starts from, with the Android port, native engine and
+  edition machinery already in place
 - [madelrandel-blip/NFSMW-Recompiled](https://github.com/madelrandel-blip/NFSMW-Recompiled) —
-  the recompilation this fork is based on, by its authors and contributors, including the
+  the recompilation both forks are based on, by its authors and contributors, including the
   Linux ARM64 launcher and AppImage by MaSieS4Fun
 
 **What it is built on**
@@ -364,3 +398,6 @@ Thanks to everyone whose work this stands on.
   the touch controller started from
 - [Material Components for Android](https://github.com/material-components/material-components-android)
   — the launcher's interface
+- The NFSM W remake/port community's **reference site** (UI resource archive that documents
+  the original screens) — the launcher's near-black + neon-red visual language is borrowed
+  from it
