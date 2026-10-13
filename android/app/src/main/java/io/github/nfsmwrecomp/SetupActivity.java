@@ -68,11 +68,14 @@ public class SetupActivity extends AppCompatActivity {
     private static final int PEDIR_DRIVER = 2;
     private static final int PEDIR_CARPETA = 3;
 
-    // Fase 2 (identidade Evolved): lima neon sobre preto. O texto sobre o lima
-    // continua escuro (ver estilarBotonPrimario).
+    // Fase 2 (identidade Evolved, tokens do site sem o tema sith): lima neon
+    // sobre preto. O texto sobre o lima continua escuro (ver
+    // estilarBotonPrimario).
     private static final int ACENTO = 0xFFBFFF00;
-    private static final int GRIS = 0xFFA0A0A0;
+    private static final int GRIS = 0xFF8F959E;
     private static final int AVISO = 0xFFFFB74D;
+    private static final int FUNDO = 0xFF0A0A0D;
+    private static final int PAINEL_LINHA = 0xFF232329;
     private static final String ESTADO_AVANZADO = "avanzado_abierto";
 
     private Ajustes ajustes;
@@ -164,20 +167,29 @@ public class SetupActivity extends AppCompatActivity {
 
     private MaterialCardView tarjeta(View... vistas) {
         MaterialCardView tarjeta = new MaterialCardView(this);
-        tarjeta.setCardBackgroundColor(0xFF1E1E1E);
+        tarjeta.setCardBackgroundColor(0xFF0E0E12);
         tarjeta.setRadius(dp(16));
         tarjeta.setCardElevation(dp(4));
         tarjeta.setUseCompatPadding(true);
-        tarjeta.setStrokeWidth(0);
+        tarjeta.setStrokeWidth(dp(1));
+        tarjeta.setStrokeColor(PAINEL_LINHA);
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(dp(16), dp(16), dp(16), dp(16));
-        
+
+        // Filete de acento no topo, como o ::before dos paineis do site.
+        View filete = new View(this);
+        filete.setBackgroundColor(ACENTO);
+        LinearLayout.LayoutParams lpFilete = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(2));
+        lpFilete.bottomMargin = dp(10);
+        layout.addView(filete, lpFilete);
+
         for (View v : vistas) {
             if (v != null) layout.addView(v);
         }
-        
+
         tarjeta.addView(layout);
         return tarjeta;
     }
@@ -191,7 +203,24 @@ public class SetupActivity extends AppCompatActivity {
     private void estilarBotonSecundario(MaterialButton b) {
         b.setCornerRadius(dp(10));
         b.setBackgroundTintList(ColorStateList.valueOf(0xFF2C2C2C));
+        b.setStrokeWidth(dp(1));
+        b.setStrokeColor(ColorStateList.valueOf(PAINEL_LINHA));
         b.setTextColor(Color.WHITE);
+        b.setLetterSpacing(0.06f);
+    }
+
+    /** Aba ativa = lima solida; inativa = contorno sutil (pills do site). */
+    private void estilarAba(MaterialButton b, boolean ativa) {
+        b.setCornerRadius(dp(10));
+        if (ativa) {
+            estilarBotonPrimario(b);
+        } else {
+            b.setBackgroundTintList(ColorStateList.valueOf(0x00000000));
+            b.setStrokeWidth(dp(1));
+            b.setStrokeColor(ColorStateList.valueOf(0xFF3A3A42));
+            b.setTextColor(GRIS);
+        }
+        b.setLetterSpacing(0.1f);
     }
 
     private void estilarBotonPeligro(MaterialButton b) {
@@ -206,7 +235,7 @@ public class SetupActivity extends AppCompatActivity {
         col.setOrientation(LinearLayout.VERTICAL);
         int m = dp(12);
         col.setPadding(m, m, m, m);
-        col.setBackgroundColor(0xFF121212);
+        col.setBackgroundColor(FUNDO);
 
         // --- Marca (cartao de identidade, como no app modificado)
         TextView marca = new TextView(this);
@@ -220,6 +249,7 @@ public class SetupActivity extends AppCompatActivity {
         TextView marcaSub = resumen(0);
         marcaSub.setText(getString(R.string.marca_sub, BuildConfig.EDICION));
         marcaSub.setLetterSpacing(0.18f);
+        marcaSub.setTypeface(Typeface.MONOSPACE);
 
         TextView tResumen = resumen(BuildConfig.CON_JUEGO ? R.string.apk_con_juego : R.string.apk_sonda);
         tResumen.setPadding(dp(8), 0, dp(8), dp(4));
@@ -229,14 +259,17 @@ public class SetupActivity extends AppCompatActivity {
         textoIso = new TextView(this);
         textoIso.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         textoIso.setTextColor(Color.WHITE);
+        textoIso.setTypeface(Typeface.MONOSPACE);
 
         textoCarpeta = new TextView(this);
         textoCarpeta.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         textoCarpeta.setTextColor(Color.WHITE);
+        textoCarpeta.setTypeface(Typeface.MONOSPACE);
 
         // Para que edicion del juego es el APK y, si a fonte e de outra, o aviso.
         textoEdicion = resumen(0);
         textoEdicion.setPadding(0, dp(4), 0, 0);
+        textoEdicion.setTypeface(Typeface.MONOSPACE);
 
         textoImportar = resumen(0);
         textoImportar.setPadding(0, dp(4), 0, 0);
@@ -293,6 +326,7 @@ public class SetupActivity extends AppCompatActivity {
         botonJugar.setText(R.string.jugar);
         botonJugar.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         botonJugar.setTypeface(Typeface.DEFAULT_BOLD);
+        botonJugar.setLetterSpacing(0.12f);
         botonJugar.setMinHeight(dp(64));
         estilarBotonPrimario(botonJugar);
         botonJugar.setOnClickListener(v -> lanzar(false));
@@ -687,19 +721,23 @@ public class SetupActivity extends AppCompatActivity {
         LinearLayout caja = new LinearLayout(this);
         caja.setOrientation(LinearLayout.VERTICAL);
         caja.setPadding(0, dp(8), 0, dp(16));
+        // Linha do titulo: tick de acento + titulo espacado (sec-head do site).
+        LinearLayout linha = new LinearLayout(this);
+        linha.setOrientation(LinearLayout.HORIZONTAL);
+        linha.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        View tick = new View(this);
+        tick.setBackgroundColor(ACENTO);
+        LinearLayout.LayoutParams lpTick = new LinearLayout.LayoutParams(dp(44), dp(2));
+        lpTick.rightMargin = dp(12);
+        linha.addView(tick, lpTick);
         TextView t = new TextView(this);
         t.setText(texto);
         t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         t.setTypeface(Typeface.DEFAULT_BOLD);
         t.setTextColor(ACENTO);
         t.setLetterSpacing(0.12f);
-        caja.addView(t);
-        View raya = new View(this);
-        raya.setBackgroundColor(ACENTO);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, dp(2));
-        lp.topMargin = dp(8);
-        caja.addView(raya, lp);
+        linha.addView(t);
+        caja.addView(linha);
         return caja;
     }
 
@@ -1086,12 +1124,8 @@ public class SetupActivity extends AppCompatActivity {
     /** Abas ISO | XEX/PASTA: pinta a ativa e mostra/esconde os controles de cada fonte. */
     private void pintarAbas() {
         boolean carpeta = "carpeta".equals(ajustes.fuenteJuego());
-        estilarBotonPrimario(tabIso);
-        estilarBotonSecundario(tabCarpeta);
-        if (carpeta) {
-            estilarBotonSecundario(tabIso);
-            estilarBotonPrimario(tabCarpeta);
-        }
+        estilarAba(tabIso, !carpeta);
+        estilarAba(tabCarpeta, carpeta);
         textoIso.setVisibility(carpeta ? View.GONE : View.VISIBLE);
         botonIso.setVisibility(carpeta ? View.GONE : View.VISIBLE);
         textoCarpeta.setVisibility(carpeta ? View.VISIBLE : View.GONE);
