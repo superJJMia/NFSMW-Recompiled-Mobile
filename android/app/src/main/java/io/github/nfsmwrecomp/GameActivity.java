@@ -15,6 +15,7 @@ import android.os.Vibrator;
 import android.os.VibratorManager;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -59,6 +60,8 @@ public class GameActivity extends SDLActivity {
     private TextView textoFps;
     private Runnable actualizarFps;
     private TouchControllerView touchController;
+    /** Build Quest: el pad virtual del Meta Quest (ver MandoQuest). */
+    private MandoQuest mandoQuest;
 
     /** Los fps del juego (tools/parche_fps.py), o -1 si el plugin no ha cargado. */
     private static native float nativeFps();
@@ -134,6 +137,28 @@ public class GameActivity extends SDLActivity {
         touchController = new TouchControllerView(this);
         mLayout.addView(touchController, new ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+        if (BuildConfig.ESCENARIO_VR) {
+            mandoQuest = new MandoQuest();
+            diagnosticarMandos(TAG, touchController);
+        }
+    }
+
+    /** Solo en el build Quest: que mandos ve Android, para saber si llega el del Quest. */
+    private static void diagnosticarMandos(String etiqueta, TouchControllerView toque) {
+        StringBuilder texto = new StringBuilder("Mandos vistos por Android: ");
+        for (int id : InputDevice.getDeviceIds()) {
+            InputDevice d = InputDevice.getDevice(id);
+            if (d == null) continue;
+            int fuentes = d.getSources();
+            if ((fuentes & (InputDevice.SOURCE_GAMEPAD | InputDevice.SOURCE_JOYSTICK)) == 0) {
+                continue;
+            }
+            texto.append(String.format(Locale.ROOT,
+                    "[%d %s v%04X:p%04X%s] ", id, d.getName(),
+                    d.getVendorId(), d.getProductId(), d.isVirtual() ? " virtual" : ""));
+        }
+        Log.i(etiqueta, texto.toString());
     }
 
     /** Un boton de mando fisico esconde los controles tactiles. */
@@ -141,6 +166,12 @@ public class GameActivity extends SDLActivity {
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (touchController != null && TouchControllerView.esFuenteDeMando(event.getSource())) {
             touchController.mandoUsado();
+        }
+        // Pad de Quest: se consume aqui (SDL lo descartaria) y se inyecta en el
+        // joystick virtual del toque.
+        if (mandoQuest != null && mandoQuest.esDeQuest(event.getDevice())
+                && mandoQuest.mandaBoton(event)) {
+            return true;
         }
         return super.dispatchKeyEvent(event);
     }
@@ -150,6 +181,9 @@ public class GameActivity extends SDLActivity {
     public boolean dispatchGenericMotionEvent(MotionEvent event) {
         if (touchController != null && TouchControllerView.esFuenteDeMando(event.getSource())) {
             touchController.mandoUsado();
+        }
+        if (mandoQuest != null && mandoQuest.esDeQuest(event.getDevice())) {
+            return mandoQuest.mandaMovimiento(event);
         }
         return super.dispatchGenericMotionEvent(event);
     }

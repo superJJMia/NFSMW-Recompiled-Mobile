@@ -42,6 +42,11 @@ val outNativo: File = File(nativo, if (edicionNativa == "pal_es") "out" else "ou
 val conJuego = if (esNativo) File(appNativa, "generated/default/sources.cmake").isFile
     else File(generado, "default/sources.cmake").isFile
 
+// Version Quest: un APK aparte, con el puente del mando nativo de Meta Quest
+// (MandoQuest). Lleva otro applicationId para que conviva con el normal:
+//     gradlew assembleRelease -Pnfsmw.quest=true
+val esQuest = (findProperty("nfsmw.quest") as String?) == "true"
+
 // Para que edicion del juego es ese codigo. Lo apunta generar_codigo.py (o
 // preparar_nativo.py); sin el fichero, es codigo generado antes de que hubiera
 // ediciones: PAL Espana.
@@ -69,13 +74,13 @@ android {
     ndkVersion = "28.2.13676358"
 
     defaultConfig {
-        applicationId = "io.github.nfsmwrecomp"
+        applicationId = "io.github.nfsmwrecomp" + if (esQuest) ".quest" else ""
         // 29: memfd para adrenotools y un cargador de librerias con los espacios
         // de nombres que necesita. Por debajo no hay Snapdragon que merezca la pena.
         minSdk = 29
         targetSdk = 35
         versionCode = 7
-        versionName = "0.4.1"
+        versionName = "0.4.1" + if (esQuest) "-quest" else ""
 
         buildConfigField("boolean", "CON_JUEGO", conJuego.toString())
         buildConfigField("String", "MOTOR", "\"$motor\"")
@@ -89,6 +94,9 @@ android {
         // El log del juego tambien en release, para diagnosticar un movil:
         //     gradlew assembleRelease -Pnfsmw.registro=true
         buildConfigField("boolean", "REGISTRO", ((findProperty("nfsmw.registro") as String?) == "true").toString())
+        // Build Quest: el puente del mando nativo (MandoQuest) solo esta activo
+        // aqui, y solo en este build existe otra edicion del APK.
+        buildConfigField("boolean", "ESCENARIO_VR", esQuest.toString())
 
         ndk {
             // Solo ARM64: el codigo generado, las rutas NEON y adrenotools.

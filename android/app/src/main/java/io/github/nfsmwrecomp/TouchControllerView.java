@@ -1160,7 +1160,10 @@ public final class TouchControllerView extends View {
         // En el editor no hay juego al que mandarle nada.
         if (editando) return;
         if (!controlsVisible) {
-            TouchControllerBridge.trySetState(-1, 0, 0, 0, 0, 0, 0);
+            // Con el mando de Quest en uso no mandar "todo suelto" encima.
+            if (!MandoQuest.activo()) {
+                TouchControllerBridge.trySetState(-1, 0, 0, 0, 0, 0, 0);
+            }
             return;
         }
         int buttons = 0;

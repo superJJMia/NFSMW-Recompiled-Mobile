@@ -5,6 +5,7 @@
     <string name="seccion_compilacion">Informações da compilação</string>
     <string name="info_version">Versão %1$s</string>
     <string name="info_edicion">Edição do jogo: %1$s</string>
+    <string name="compilacion_quest">Compilação Quest: gamepad nativo</string>
 
     <string name="apk_con_juego">Este APK contém o jogo. É só para os seus dispositivos: não o compartilhe.</string>
     <string name="apk_sonda">APK sem o jogo: traz apenas a sonda Vulkan, para testar o celular e o driver da GPU.</string>

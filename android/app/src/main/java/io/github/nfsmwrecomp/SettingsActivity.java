@@ -335,6 +335,12 @@ public class SettingsActivity extends PantallaBase {
             compilCaja.addView(compilMotor);
         }
         compilCaja.addView(espacio(6));
+        if (BuildConfig.ESCENARIO_VR) {
+            TextView compilVR = resumen(R.string.compilacion_quest);
+            compilVR.setTypeface(Typeface.MONOSPACE);
+            compilCaja.addView(compilVR);
+            compilCaja.addView(espacio(4));
+        }
         compilCaja.addView(resumen(BuildConfig.CON_JUEGO
                 ? R.string.apk_con_juego : R.string.apk_sonda));
         compilCaja.addView(espacio(10));

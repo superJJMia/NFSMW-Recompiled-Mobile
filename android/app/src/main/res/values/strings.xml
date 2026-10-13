@@ -12,6 +12,7 @@
     <string name="seccion_compilacion">Build information</string>
     <string name="info_version">Version %1$s</string>
     <string name="info_edicion">Game edition: %1$s</string>
+    <string name="compilacion_quest">Quest build: native gamepad</string>
 
     <string name="apk_con_juego">This APK contains the game. It is for your own devices only: do not share it.</string>
     <string name="apk_sonda">APK without the game: it only includes the Vulkan probe, to test your phone and GPU driver.</string>
