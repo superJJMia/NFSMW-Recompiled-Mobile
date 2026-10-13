@@ -540,7 +540,7 @@ public class SetupActivity extends AppCompatActivity {
 
         // --- Avanzado
         LinearLayout cabecera = seccion(R.string.seccion_avanzado);
-        TextView textoCabecera = (TextView) cabecera.getChildAt(0);
+        TextView textoCabecera = tituloDe(cabecera);
         LinearLayout avanzado = new LinearLayout(this);
         avanzado.setOrientation(LinearLayout.VERTICAL);
         Runnable pintarPlegado = () -> {
@@ -739,6 +739,12 @@ public class SetupActivity extends AppCompatActivity {
         linha.addView(t);
         caja.addView(linha);
         return caja;
+    }
+
+    /** Ultimo TextView da linha de titulo devolvida por seccion() (apos o tick). */
+    private TextView tituloDe(LinearLayout seccion) {
+        LinearLayout linha = (LinearLayout) seccion.getChildAt(0);
+        return (TextView) linha.getChildAt(linha.getChildCount() - 1);
     }
 
     /** Turnip es solo para Adreno: con otra GPU, la ayuda lo dice. */
