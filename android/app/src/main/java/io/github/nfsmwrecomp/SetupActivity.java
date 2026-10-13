@@ -172,7 +172,7 @@ public class SetupActivity extends AppCompatActivity {
         tarjeta.setCardElevation(dp(4));
         tarjeta.setUseCompatPadding(true);
         tarjeta.setStrokeWidth(dp(1));
-        tarjeta.setStrokeColor(PAINEL_LINHA);
+        tarjeta.setStrokeColor(ColorStateList.valueOf(PAINEL_LINHA));
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
