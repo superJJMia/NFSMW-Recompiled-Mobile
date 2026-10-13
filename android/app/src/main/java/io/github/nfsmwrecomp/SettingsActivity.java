@@ -316,6 +316,34 @@ public class SettingsActivity extends PantallaBase {
         col.addView(tarjeta(cabecera, avanzado));
         pintarPlegado();
 
+        col.addView(espacio(12));
+
+        // --- Compilacao: de que edicao es este APK, tras la configuracion avanzada.
+        LinearLayout compilCaja = new LinearLayout(this);
+        compilCaja.setOrientation(LinearLayout.VERTICAL);
+        TextView compil = resumen(0);
+        compil.setText(getString(R.string.info_version, BuildConfig.VERSION_NAME));
+        compil.setTypeface(Typeface.MONOSPACE);
+        compilCaja.addView(compil);
+        TextView compilEd = resumen(0);
+        compilEd.setText(getString(R.string.info_edicion, BuildConfig.EDICION));
+        compilEd.setTypeface(Typeface.MONOSPACE);
+        compilCaja.addView(compilEd);
+        if (MotorNativo.ACTIVO) {
+            TextView compilMotor = resumen(R.string.motor_nativo);
+            compilMotor.setTypeface(Typeface.MONOSPACE);
+            compilCaja.addView(compilMotor);
+        }
+        compilCaja.addView(espacio(6));
+        compilCaja.addView(resumen(BuildConfig.CON_JUEGO
+                ? R.string.apk_con_juego : R.string.apk_sonda));
+        compilCaja.addView(espacio(10));
+        compilCaja.addView(botaoSobre());
+        col.addView(tarjeta(
+                seccion(R.string.seccion_compilacion),
+                compilCaja
+        ));
+
         ScrollView scroll = new ScrollView(this);
         scroll.setBackgroundColor(FUNDO);
         scroll.addView(col);

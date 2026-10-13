@@ -1,6 +1,5 @@
 package io.github.nfsmwrecomp;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.documentfile.provider.DocumentFile;
 import android.content.Intent;
 import android.database.Cursor;
@@ -207,72 +206,10 @@ public class SetupActivity extends PantallaBase {
 
         col.addView(espacio(12));
 
-        // --- Compilacao: de que edicao e este APK y como se construyo.
-        TextView compil = resumen(0);
-        compil.setText(getString(R.string.info_version, BuildConfig.VERSION_NAME));
-        compil.setTypeface(Typeface.MONOSPACE);
-        TextView compilEd = resumen(0);
-        compilEd.setText(getString(R.string.info_edicion, BuildConfig.EDICION));
-        compilEd.setTypeface(Typeface.MONOSPACE);
-        TextView compilJuego = resumen(BuildConfig.CON_JUEGO
-                ? R.string.apk_con_juego : R.string.apk_sonda);
-
-        LinearLayout compilCaja = new LinearLayout(this);
-        compilCaja.setOrientation(LinearLayout.VERTICAL);
-        compilCaja.addView(compil);
-        compilCaja.addView(compilEd);
-        if (MotorNativo.ACTIVO) {
-            TextView compilMotor = resumen(R.string.motor_nativo);
-            compilMotor.setTypeface(Typeface.MONOSPACE);
-            compilCaja.addView(compilMotor);
-        }
-        compilCaja.addView(espacio(6));
-        compilCaja.addView(compilJuego);
-        compilCaja.addView(espacio(10));
-        compilCaja.addView(botaoSobre());
-
-        col.addView(tarjeta(
-                seccion(R.string.seccion_compilacion),
-                compilCaja
-        ));
-
-        col.addView(espacio(16));
-
-        // --- Jugar
-        botonJugar = new MaterialButton(this);
-        botonJugar.setText(R.string.jugar);
-        botonJugar.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
-        botonJugar.setTypeface(Typeface.DEFAULT_BOLD);
-        botonJugar.setLetterSpacing(0.14f);
-        botonJugar.setMinHeight(dp(68));
-        estilarBotonPrimario(botonJugar);
-        botonJugar.setOnClickListener(v -> lanzar(false));
-
-        LinearLayout.LayoutParams lpJugar = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lpJugar.topMargin = dp(16);
-
-        avisoJugar = resumen(0);
-        avisoJugar.setPadding(0, dp(8), 0, 0);
-
-        LinearLayout boxJugar = new LinearLayout(this);
-        boxJugar.setOrientation(LinearLayout.VERTICAL);
-        boxJugar.addView(botonJugar, lpJugar);
-        boxJugar.addView(avisoJugar);
-        col.addView(boxJugar);
-
-        // --- Configuracoes (el resto de ajustes en su propia pantalla)
-        MaterialButton config = new MaterialButton(this);
-        config.setText(R.string.configuracoes);
-        config.setLetterSpacing(0.1f);
-        config.setMinHeight(dp(52));
-        estilarBotonSecundario(config);
-        config.setOnClickListener(v ->
-                startActivity(new Intent(this, SettingsActivity.class)));
-        LinearLayout.LayoutParams lpConfig = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lpConfig.topMargin = dp(12);
-        col.addView(config, lpConfig);
+        // --- Pie: contenido desplazable arriba y abajo fijo con Jugar/Config.
+        LinearLayout raiz = new LinearLayout(this);
+        raiz.setOrientation(LinearLayout.VERTICAL);
+        raiz.setBackgroundColor(FUNDO);
 
         ScrollView scroll = new ScrollView(this);
         scroll.setBackgroundColor(FUNDO);
@@ -282,21 +219,58 @@ public class SetupActivity extends PantallaBase {
                     m + ins.getSystemWindowInsetRight(), m + ins.getSystemWindowInsetBottom());
             return ins;
         });
-        return scroll;
-    }
+        raiz.addView(scroll, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
-    /** Botao Sobre: versao e creditos. */
-    private View botaoSobre() {
-        MaterialButton sobre = new MaterialButton(this);
-        sobre.setText(R.string.sobre);
-        estilarBotonSecundario(sobre);
-        sobre.setOnClickListener(v -> new AlertDialog.Builder(this)
-                .setTitle(R.string.sobre_titulo)
-                .setMessage(getString(R.string.sobre_texto,
-                        BuildConfig.VERSION_NAME, BuildConfig.EDICION))
-                .setPositiveButton(android.R.string.ok, null)
-                .show());
-        return sobre;
+        // --- Jugar + Configuracoes, siempre a la vista.
+        View linea = new View(this);
+        linea.setBackgroundColor(PAINEL_LINHA);
+
+        avisoJugar = resumen(0);
+        avisoJugar.setPadding(0, 0, 0, dp(6));
+
+        botonJugar = new MaterialButton(this);
+        botonJugar.setText(R.string.jugar);
+        botonJugar.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
+        botonJugar.setTypeface(Typeface.DEFAULT_BOLD);
+        botonJugar.setLetterSpacing(0.14f);
+        botonJugar.setMinHeight(dp(68));
+        estilarBotonPrimario(botonJugar);
+        botonJugar.setOnClickListener(v -> lanzar(false));
+
+        MaterialButton config = new MaterialButton(this);
+        config.setText(R.string.configuracoes);
+        config.setLetterSpacing(0.1f);
+        config.setMinHeight(dp(68));
+        estilarBotonSecundario(config);
+        config.setOnClickListener(v ->
+                startActivity(new Intent(this, SettingsActivity.class)));
+
+        LinearLayout fila = new LinearLayout(this);
+        fila.setOrientation(LinearLayout.HORIZONTAL);
+        fila.addView(botonJugar, new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 2f));
+        fila.addView(config, new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        LinearLayout pie = new LinearLayout(this);
+        pie.setOrientation(LinearLayout.VERTICAL);
+        pie.setBackgroundColor(FUNDO_2);
+        pie.setPadding(dp(16), dp(8), dp(16), dp(16));
+        pie.addView(linea, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(2)));
+        pie.addView(avisoJugar);
+        pie.addView(fila, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        pie.setOnApplyWindowInsetsListener((v, ins) -> {
+            pie.setPadding(dp(16) + ins.getSystemWindowInsetLeft(), dp(8),
+                    dp(16) + ins.getSystemWindowInsetRight(),
+                    dp(16) + ins.getSystemWindowInsetBottom());
+            return ins;
+        });
+        raiz.addView(pie);
+
+        return raiz;
     }
 
     /** Abas ISO | XEX/PASTA: pinta a ativa e mostra/esconde os controles de cada fonte. */

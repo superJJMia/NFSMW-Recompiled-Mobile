@@ -25,6 +25,7 @@ import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
@@ -549,6 +550,20 @@ public abstract class PantallaBase extends AppCompatActivity {
             v.vibrate(500);
         }
         return true;
+    }
+
+    /** Botao Sobre: versao e creditos de esta compilacion. */
+    protected View botaoSobre() {
+        MaterialButton sobre = new MaterialButton(this);
+        sobre.setText(R.string.sobre);
+        estilarBotonSecundario(sobre);
+        sobre.setOnClickListener(v -> new AlertDialog.Builder(this)
+                .setTitle(R.string.sobre_titulo)
+                .setMessage(getString(R.string.sobre_texto,
+                        BuildConfig.VERSION_NAME, BuildConfig.EDICION))
+                .setPositiveButton(android.R.string.ok, null)
+                .show());
+        return sobre;
     }
 
     protected static String nombreOpcion(String arg) {
