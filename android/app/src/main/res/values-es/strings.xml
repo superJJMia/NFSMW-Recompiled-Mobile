@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="configuracoes">Configuración</string>
+    <string name="volver">Volver</string>
+    <string name="seccion_compilacion">Información de la compilación</string>
+    <string name="info_version">Versión %1$s</string>
+    <string name="info_edicion">Edición del juego: %1$s</string>
+
     <string name="apk_con_juego">APK con el juego. Es solo para tus dispositivos: no lo compartas.</string>
     <string name="apk_sonda">APK sin el juego: solo trae la sonda de Vulkan, para probar el móvil y el driver de la GPU.</string>
 

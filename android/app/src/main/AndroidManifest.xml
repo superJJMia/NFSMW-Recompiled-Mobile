@@ -42,12 +42,21 @@
         <activity
             android:name=".SetupActivity"
             android:exported="true"
+            android:screenOrientation="sensorLandscape"
             android:theme="@style/Tema.Inicio">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Configuraciones: el resto de ajustes, aparte de la pantalla de
+             inicio. En horizontal como el juego. -->
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Tema.Inicio" />
 
         <!-- Proceso propio: las librerias nativas no se pueden recargar, asi
              que cada partida (o sonda) empieza en un proceso limpio. Ver

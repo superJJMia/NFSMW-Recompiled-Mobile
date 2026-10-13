@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Pantalla de inicio: el tema oscuro de Material 3 con el acento del mando
-         tactil (#6F7432). Sin barra de titulo. -->
+    <!-- Pantalla de inicio y configuración: tema oscuro de Material 3 con el
+         acento del app (rojo neón). Sin barra de título. -->
     <style name="Tema.Inicio" parent="Theme.Material3.Dark.NoActionBar">
-        <item name="colorPrimary">#6F7432</item>
-        <item name="colorSecondary">#6F7432</item>
+        <item name="colorPrimary">#FF2222</item>
+        <item name="colorSecondary">#FF2222</item>
+        <item name="android:windowBackground">#040405</item>
+        <item name="colorSurface">#0E0E12</item>
     </style>
 </resources>
