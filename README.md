@@ -12,6 +12,19 @@ extraído**.
 > dados do jogo, nem o `default.xex`, nem o código gerado, nem binários
 > compilados.
 
+## Download
+
+**[Baixe a versão mais recente na página de Releases »](https://github.com/superJJMia/NFSMW-Recompiled-Mobile/releases/latest)**
+
+Na página de releases escolha um dos APKs em **Assets**:
+
+- **[`NFSMW-v0.4.1-pal-ptbr.apk`](https://github.com/superJJMia/NFSMW-Recompiled-Mobile/releases/latest/download/NFSMW-v0.4.1-pal-ptbr.apk)**
+  — versão padrão (**fix do save**). Roda em Android e no Quest.
+- **[`NFSMW-v0.4.1-pal-ptbr-quest-gamepad.apk`](https://github.com/superJJMia/NFSMW-Recompiled-Mobile/releases/latest/download/NFSMW-v0.4.1-pal-ptbr-quest-gamepad.apk)**
+  — **fix do save + gamepad emulado** pelos controles Touch do **Meta Quest 3S**.
+
+Quer todas as versões? Veja a [lista de releases](https://github.com/superJJMia/NFSMW-Recompiled-Mobile/releases).
+
 ## Versões do jogo compatíveis
 
 Cada APK é compilado a partir de um `default.xex` específico e só roda com a
