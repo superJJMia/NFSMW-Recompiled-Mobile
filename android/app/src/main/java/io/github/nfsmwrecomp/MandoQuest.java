@@ -1,6 +1,7 @@
 package io.github.nfsmwrecomp;
 
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -49,6 +50,12 @@ final class MandoQuest {
     // mande un "todo suelto" encima mientras seesta jugando con los Quest.
     private static volatile long ultimaActividad;
 
+    // Diagnostico (gradlew ... -Pnfsmw.registro=true): deja en logcat lo que
+    // llega de verdad desde el pad, para saber si el sistema lo esta entregando.
+    private static final String TAG = "nfsmw";
+    private static final boolean REGISTRO = BuildConfig.REGISTRO;
+    private long ultimoLog;
+
     /** Falso en la edicion normal: no hay pad de Quest y el toque no cambia nada. */
     static boolean activo() {
         return SystemClock.uptimeMillis() - ultimaActividad < 2000L;
@@ -83,6 +90,11 @@ final class MandoQuest {
         if (accion == KeyEvent.ACTION_DOWN) mascara |= bit;
         else if (accion == KeyEvent.ACTION_UP) mascara &= ~bit;
         else return true;
+        if (REGISTRO && accion == KeyEvent.ACTION_DOWN) {
+            Log.i(TAG, "Quest boton: code=" + e.getKeyCode() + " bit=0x"
+                    + Integer.toHexString(bit) + " dev=" + nombre(e.getDevice())
+                    + " mascara=0x" + Integer.toHexString(mascara));
+        }
         enviar();
         return true;
     }
@@ -120,12 +132,32 @@ final class MandoQuest {
         if (v == 0f) v = e.getAxisValue(MotionEvent.AXIS_GAS);
         if (v != rt) { rt = v; cambio = true; }
 
-        if (cambio) enviar();
+        if (cambio) {
+            if (REGISTRO) logEjes(hx, hy);
+            enviar();
+        }
         return true;
+    }
+
+    /** Diagnostico: como mucho un registro cada 500 ms para no inundar. */
+    private void logEjes(float hx, float hy) {
+        long ahora = SystemClock.uptimeMillis();
+        if (ahora - ultimoLog < 500L) return;
+        ultimoLog = ahora;
+        Log.i(TAG, String.format(Locale.ROOT,
+                "Quest ejes: L(%.2f,%.2f) R(%.2f,%.2f) T(%.2f,%.2f) hat(%.1f,%.1f) mascara=0x%x",
+                lx, ly, rx, ry, lt, rt, hx, hy, mascara));
     }
 
     private void enviar() {
         TouchControllerBridge.trySetState(mascara, lx, ly, rx, ry, lt, rt);
+    }
+
+    private static String nombre(InputDevice d) {
+        if (d == null) return "?";
+        return d.getName() + " v" + Integer.toHexString(d.getVendorId())
+                + ":p" + Integer.toHexString(d.getProductId())
+                + (d.isVirtual() ? " virtual" : "");
     }
 
     private static int bitDeBoton(int codigo) {

@@ -173,6 +173,15 @@ public class GameActivity extends SDLActivity {
                 && mandoQuest.mandaBoton(event)) {
             return true;
         }
+        // Diagnostico: un mando que MandoQuest no reconoce.
+        if (mandoQuest != null && BuildConfig.REGISTRO
+                && (event.getSource() & InputDevice.SOURCE_GAMEPAD) != 0
+                && event.getAction() == KeyEvent.ACTION_DOWN) {
+            InputDevice d = event.getDevice();
+            Log.i(TAG, "Tecla mando sin mapear: code=" + event.getKeyCode() + " dev="
+                    + (d == null ? "?" : d.getName() + " v" + Integer.toHexString(d.getVendorId())
+                            + ":p" + Integer.toHexString(d.getProductId())));
+        }
         return super.dispatchKeyEvent(event);
     }
 
@@ -184,6 +193,13 @@ public class GameActivity extends SDLActivity {
         }
         if (mandoQuest != null && mandoQuest.esDeQuest(event.getDevice())) {
             return mandoQuest.mandaMovimiento(event);
+        }
+        if (mandoQuest != null && BuildConfig.REGISTRO
+                && (event.getSource() & InputDevice.SOURCE_JOYSTICK) != 0) {
+            InputDevice d = event.getDevice();
+            Log.i(TAG, "Movimiento mando sin mapear: dev="
+                    + (d == null ? "?" : d.getName() + " v" + Integer.toHexString(d.getVendorId())
+                            + ":p" + Integer.toHexString(d.getProductId())));
         }
         return super.dispatchGenericMotionEvent(event);
     }

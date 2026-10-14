@@ -74,7 +74,12 @@ android {
     ndkVersion = "28.2.13676358"
 
     defaultConfig {
-        applicationId = "io.github.nfsmwrecomp" + if (esQuest) ".quest" else ""
+        // Version Quest: impersona "com.xbox.pwa". El modo gamepad del VrShell
+        // solo se activa si el paquete enfocado esta en una allowlist hardcoded
+        // (X.C0B6.A07 en com.oculus.vrshell): com.xbox.pwa, com.valvesoftware.steamlinkvr,
+        // com.oculus.panelapp.settings, com.oculus.panelapp.devicepairing.
+        // com.xbox.pwa no esta instalado en el device, asi que el nombre esta libre.
+        applicationId = if (esQuest) "com.xbox.pwa" else "io.github.nfsmwrecomp"
         // 29: memfd para adrenotools y un cargador de librerias con los espacios
         // de nombres que necesita. Por debajo no hay Snapdragon que merezca la pena.
         minSdk = 29

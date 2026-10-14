@@ -26,6 +26,19 @@
         android:largeHeap="true"
         android:theme="@android:style/Theme.Material">
 
+        <!-- Quest (Horizon OS): dispositivos soportados y tipo de app. Sin
+             supportedDevices, Horizon OS arranca la app en modo compatibilidad
+             (la hace pasar por un modelo anterior) y apaga lo que es solo de
+             Quest 3/3S, como el gamepad emulado de los mandos Touch. Sin
+             application_type no se reconoce como app 2D de panel. Son
+             meta-datos de Meta: en Android normal se ignoran. -->
+        <meta-data
+            android:name="com.oculus.supportedDevices"
+            android:value="quest2|questpro|quest3|quest3s" />
+        <meta-data
+            android:name="com.oculus.application_type"
+            android:value="panel" />
+
         <!-- Modo de juego de Android 12+: que el sistema no baje la resolucion
              ni limite los fps por su cuenta. La app ya tiene sus ajustes para
              eso (resolucion de render, limite de fps), y encima de ellos solo
@@ -47,6 +60,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="com.oculus.intent.category.2D" />
             </intent-filter>
         </activity>
 
